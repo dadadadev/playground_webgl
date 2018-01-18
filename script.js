@@ -1,27 +1,18 @@
-const test = () => console.log('test');
 
 window.addEventListener('DOMContentLoaded', () => {
   const c = document.getElementById('canvas_1');
-  c.width = 300;
-  c.height = 300;
 
   const gl = c.getContext('webgl');
+  gl.viewport(0, 0, c.width, c.height);
 
-  const create_shader = (id) => {
-    let shader;
-    const scriptElement = document.getElementById(id);
-    if (!scriptElement) return;
-    switch (scriptElement.type) {
-      case 'x-shader/x-vertex':
-        shader = gl.createShader(gl.VERTEX_SHADER);
-        break;
-      case 'x-shader/x-fragment':
-        shader = gl.createShader(gl.FRAGMENT_SHADER);
-        break;
-      default:
-        return;
-    }
-    gl.shaderSource(shader, scriptElement.text);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearDepth(1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  const create_shader = (id, type) => {
+    const sourse = document.getElementById(id).textContent;
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, sourse);
     gl.compileShader(shader);
     if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
       return shader;
@@ -42,7 +33,6 @@ window.addEventListener('DOMContentLoaded', () => {
       alert(gl.getProgramInfoLog(program));
     }
   }
-
   const create_vbo = (data) => {
     const vbo = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
@@ -50,18 +40,26 @@ window.addEventListener('DOMContentLoaded', () => {
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     return vbo;
   }
+  const set_attribute = (vbo, attL, attS) => {
+    for (let i in vbo) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
+      gl.enableVertexAttribArray(attL[i]);
+      gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
+    }
+  }
 
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.clearDepth(1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  const vShader = create_shader('vs', gl.VERTEX_SHADER);
+  const fShader = create_shader('fs', gl.FRAGMENT_SHADER);
+  const prg = create_program(vShader, fShader);
 
-  const v_shader = create_shader('vs');
-  const f_shader = create_shader('fs');
 
-  const prg = create_program(v_shader, f_shader);
-  const attLocation = gl.getAttribLocation(prg, 'position');
+  const attLocation = new Array(2);
+  attLocation[0] = gl.getAttribLocation(prg, 'position');
+  attLocation[1] = gl.getAttribLocation(prg, 'color');
 
-  const attStribe = 3;
+  const attStride = new Array(2);
+  attStride[0] = 3;
+  attStride[1] = 4;
 
   const vertex_position = [
     0.0, 1.0, 0.0,
@@ -69,28 +67,40 @@ window.addEventListener('DOMContentLoaded', () => {
    -1.0, 0.0, 0.0
 ];
 
-  const vbo = create_vbo(vertex_position);
-  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-  gl.enableVertexAttribArray(attLocation);
-  gl.vertexAttribPointer(attLocation, attStribe, gl.FLOAT, false, 0, 0);
+  const vertex_color = [
+    1.0, 0.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 1.0,
+  ];
+
+  const position_vbo = create_vbo(vertex_position);
+  const color_vbo = create_vbo(vertex_color);
+
+  set_attribute([position_vbo, color_vbo], attLocation, attStride);
+
+  const uniLocation = gl.getUniformLocation(prg, 'mvpMatrix');
 
   const m = new matIV();
-  const Matrix = m.identity(m.create());
-  m.translate(Matrix, [1.0, 0.0, 0.0], Matrix);
-
   const mMatrix = m.identity(m.create());
   const vMatrix = m.identity(m.create());
   const pMatrix = m.identity(m.create());
+  const tmpMatrix = m.identity(m.create());
   const mvpMatrix = m.identity(m.create());
 
-  m.lookAt([0.0, 1.0, 3.0], [0, 0, 0], [0, 1, 0], vMatrix);
+  m.lookAt([0.0, 0.0, 3.0], [0, 0, 0], [0, 1, 0], vMatrix);
   m.perspective(90, c.width / c.height, 0.1, 100, pMatrix);
-
-  m.multiply(pMatrix, vMatrix, mvpMatrix);
-  m.multiply(mvpMatrix, mMatrix, mvpMatrix);
-
-  const uniLocation = gl.getUniformLocation(prg, 'mvpMatrix');
+  m.multiply(pMatrix, vMatrix, tmpMatrix);
+  m.translate(mMatrix, [1.5, 0.0, 0.0], mMatrix);
+  m.multiply(tmpMatrix, mMatrix, mvpMatrix);
   gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+  m.identity(mMatrix);
+  m.translate(mMatrix, [-1.5, 0.0, 0.0], mMatrix);
+  m.multiply(tmpMatrix, mMatrix, mvpMatrix);
+
+  gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+
   gl.flush();
 });

@@ -3,17 +3,22 @@
     <title>playground for WebGL</title>
   </head>
   <body>
-    <canvas id="canvas_1"></canvas>
+    <canvas id="canvas_1" style="width: 300px; height: 300px;"></canvas>
     <script id="vs" type="x-shader/x-vertex">
       attribute vec3 position;
-      uniform   mat4 mvpMatrix;
+      attribute vec4 color;
+      uniform mat4 mvpMatrix;
+      varying vec4 vColor;
       void main(void){
+        vColor = color;
         gl_Position = mvpMatrix * vec4(position, 1.0);
       }
     </script>
     <script id="fs" type="x-shader/x-fragment">
+      precision mediump float;
+      varying vec4 vColor;
       void main(void){
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        gl_FragColor = vColor;
       }
     </script>
     <script src="minMatrix.js"></script>
