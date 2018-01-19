@@ -1,0 +1,20 @@
+{
+  "name": "webgl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "rollup -c -i src/js/input.js -o docs/js/app.js -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dadadadev/playground_webgl.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "glslify": "^6.1.0",
+    "rollup": "^0.54.1",
+    "rollup-plugin-glslify": "^1.0.2"
+  }
+}

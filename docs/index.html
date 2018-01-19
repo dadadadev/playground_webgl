@@ -2,26 +2,9 @@
   <head>
     <title>playground for WebGL</title>
   </head>
-  <body>
-    <canvas id="canvas_1" style="width: 300px; height: 300px;"></canvas>
-    <script id="vs" type="x-shader/x-vertex">
-      attribute vec3 position;
-      attribute vec4 color;
-      uniform mat4 mvpMatrix;
-      varying vec4 vColor;
-      void main(void){
-        vColor = color;
-        gl_Position = mvpMatrix * vec4(position, 1.0);
-      }
-    </script>
-    <script id="fs" type="x-shader/x-fragment">
-      precision mediump float;
-      varying vec4 vColor;
-      void main(void){
-        gl_FragColor = vColor;
-      }
-    </script>
-    <script src="minMatrix.js"></script>
-    <script src="script.js"></script>
+  <body style="display: flex; justify-content: center; align-items: center;">
+    <canvas id="canvas_1" width="500px" height="500px"></canvas>
+    <script src="js/minMatrix.js"></script>
+    <script src="js/app.js"></script>
   </body>
 </html>
