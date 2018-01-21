@@ -1144,7 +1144,27 @@ function translate$2(out, a, v) {
  * @param {vec3} v the vec3 to scale the matrix by
  * @returns {mat4} out
  **/
+function scale$3(out, a, v) {
+  let x = v[0], y = v[1], z = v[2];
 
+  out[0] = a[0] * x;
+  out[1] = a[1] * x;
+  out[2] = a[2] * x;
+  out[3] = a[3] * x;
+  out[4] = a[4] * y;
+  out[5] = a[5] * y;
+  out[6] = a[6] * y;
+  out[7] = a[7] * y;
+  out[8] = a[8] * z;
+  out[9] = a[9] * z;
+  out[10] = a[10] * z;
+  out[11] = a[11] * z;
+  out[12] = a[12];
+  out[13] = a[13];
+  out[14] = a[14];
+  out[15] = a[15];
+  return out;
+}
 
 /**
  * Rotates a mat4 by the given angle around the given axis
@@ -1165,7 +1185,40 @@ function translate$2(out, a, v) {
  * @param {Number} rad the angle to rotate the matrix by
  * @returns {mat4} out
  */
+function rotateX(out, a, rad) {
+  let s = Math.sin(rad);
+  let c = Math.cos(rad);
+  let a10 = a[4];
+  let a11 = a[5];
+  let a12 = a[6];
+  let a13 = a[7];
+  let a20 = a[8];
+  let a21 = a[9];
+  let a22 = a[10];
+  let a23 = a[11];
 
+  if (a !== out) { // If the source and destination differ, copy the unchanged rows
+    out[0]  = a[0];
+    out[1]  = a[1];
+    out[2]  = a[2];
+    out[3]  = a[3];
+    out[12] = a[12];
+    out[13] = a[13];
+    out[14] = a[14];
+    out[15] = a[15];
+  }
+
+  // Perform axis-specific matrix multiplication
+  out[4] = a10 * c + a20 * s;
+  out[5] = a11 * c + a21 * s;
+  out[6] = a12 * c + a22 * s;
+  out[7] = a13 * c + a23 * s;
+  out[8] = a20 * c - a10 * s;
+  out[9] = a21 * c - a11 * s;
+  out[10] = a22 * c - a12 * s;
+  out[11] = a23 * c - a13 * s;
+  return out;
+}
 
 /**
  * Rotates a matrix by the given angle around the Y axis
@@ -1175,7 +1228,40 @@ function translate$2(out, a, v) {
  * @param {Number} rad the angle to rotate the matrix by
  * @returns {mat4} out
  */
+function rotateY(out, a, rad) {
+  let s = Math.sin(rad);
+  let c = Math.cos(rad);
+  let a00 = a[0];
+  let a01 = a[1];
+  let a02 = a[2];
+  let a03 = a[3];
+  let a20 = a[8];
+  let a21 = a[9];
+  let a22 = a[10];
+  let a23 = a[11];
 
+  if (a !== out) { // If the source and destination differ, copy the unchanged rows
+    out[4]  = a[4];
+    out[5]  = a[5];
+    out[6]  = a[6];
+    out[7]  = a[7];
+    out[12] = a[12];
+    out[13] = a[13];
+    out[14] = a[14];
+    out[15] = a[15];
+  }
+
+  // Perform axis-specific matrix multiplication
+  out[0] = a00 * c - a20 * s;
+  out[1] = a01 * c - a21 * s;
+  out[2] = a02 * c - a22 * s;
+  out[3] = a03 * c - a23 * s;
+  out[8] = a00 * s + a20 * c;
+  out[9] = a01 * s + a21 * c;
+  out[10] = a02 * s + a22 * c;
+  out[11] = a03 * s + a23 * c;
+  return out;
+}
 
 /**
  * Rotates a matrix by the given angle around the Z axis
@@ -1185,7 +1271,40 @@ function translate$2(out, a, v) {
  * @param {Number} rad the angle to rotate the matrix by
  * @returns {mat4} out
  */
+function rotateZ(out, a, rad) {
+  let s = Math.sin(rad);
+  let c = Math.cos(rad);
+  let a00 = a[0];
+  let a01 = a[1];
+  let a02 = a[2];
+  let a03 = a[3];
+  let a10 = a[4];
+  let a11 = a[5];
+  let a12 = a[6];
+  let a13 = a[7];
 
+  if (a !== out) { // If the source and destination differ, copy the unchanged last row
+    out[8]  = a[8];
+    out[9]  = a[9];
+    out[10] = a[10];
+    out[11] = a[11];
+    out[12] = a[12];
+    out[13] = a[13];
+    out[14] = a[14];
+    out[15] = a[15];
+  }
+
+  // Perform axis-specific matrix multiplication
+  out[0] = a00 * c + a10 * s;
+  out[1] = a01 * c + a11 * s;
+  out[2] = a02 * c + a12 * s;
+  out[3] = a03 * c + a13 * s;
+  out[4] = a10 * c - a00 * s;
+  out[5] = a11 * c - a01 * s;
+  out[6] = a12 * c - a02 * s;
+  out[7] = a13 * c - a03 * s;
+  return out;
+}
 
 /**
  * Creates a matrix from a vector translation
@@ -3538,6 +3657,13 @@ window.addEventListener('DOMContentLoaded', () => {
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     return vbo;
   };
+  const create_ibo = (data) => {
+    const ibo = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    return ibo;
+  };
   const set_attribute = (vbo, attL, attS) => {
     for (let i in vbo) {
       gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
@@ -3546,10 +3672,8 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  gl.viewport(0, 0, c.width, c.height);
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.clearDepth(1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.CULL_FACE);
+  gl.depthFunc(gl.LEQUAL);
 
   const vShader = createShader(triangleVs, gl.VERTEX_SHADER);
   const fShader = createShader(triangleFs, gl.FRAGMENT_SHADER);
@@ -3564,60 +3688,94 @@ window.addEventListener('DOMContentLoaded', () => {
   attStride[1] = 4;
 
   const vertex_position = new Float32Array([
-    0.0, 1.0, 0.0,
-    1.0, 0.0, 0.0,
-   -1.0, 0.0, 0.0,
+    0.0, 0.5, 0.0,  //0
+   -0.5, 0.0, 0.5,  //1
+    0.5, 0.0, 0.5,  //2
+    0.5, 0.0, -0.5, //3
+   -0.5, 0.0, -0.5,  //4
+    0.0, -0.5, 0.0  //5
   ]);
   const vertex_color = new Float32Array([
     1.0, 0.0, 0.0, 1.0,
     0.0, 1.0, 0.0, 1.0,
     0.0, 0.0, 1.0, 1.0,
+    1.0, 0.0, 1.0, 1.0,
+    0.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 0.0, 1.0
+  ]);
+
+  const index = new Int16Array([
+    0, 1, 2,
+    0, 2, 3,
+    0, 3, 4,
+    0, 4, 1,
+    5, 2, 1,
+    5, 3, 2,
+    5, 4, 3,
+    5, 1, 4
   ]);
 
   const position_vbo = create_vbo(vertex_position);
   const color_vbo = create_vbo(vertex_color);
   set_attribute([position_vbo, color_vbo], attLocation, attStride);
+  const ibo = create_ibo(index);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
 
-  // const scale = mat4.create();
-  // mat4.scale(scale, scale, [1, 1, 1]);
-  // mat4.rotateZ(rotation, rotation, Math.PI / 8);
-  // const translation = mat4.create();
-  const translation = create$3();
-  translate$2(translation, translation, [1.5, 0, 0]);
-  const model = create$3();
-  multiply$3(model, model, translation);
-  // mat4.multiply(model, model, rotation);
-  // mat4.multiply(model, model, scale);
+  let r = 0;
+  const anime = () => {
+    if (r < 360) {
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clearDepth(1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  const cameraPosition = [0, 0, 3];
-  const lookAtPosition = [0, 0, 0];
-  const upDirection    = [0, 1, 0];
-  const view  = create$3();
-  lookAt(view, cameraPosition, lookAtPosition, upDirection);
+      const translation = create$3();
+      translate$2(translation, translation, [-1.5, 0, 0]);
+      const model = create$3();
+      multiply$3(model, model, translation);
 
-  const fovy   = 90 * (Math.PI / 180);
-  const aspect = c.width / c.height;
-  const near   = 0.1;
-  const far    = 100;
-  const projection$$1 = create$3();
-  perspective(projection$$1, fovy, aspect, near, far);
+      const cameraPosition = [0, 0, 5];
+      const lookAtPosition = [0, 0, 0];
+      const upDirection    = [0, 1, 0];
+      const view  = create$3();
+      lookAt(view, cameraPosition, lookAtPosition, upDirection);
 
-  const modelLocation      = gl.getUniformLocation(program, 'model');
-  const viewLocation       = gl.getUniformLocation(program, 'view');
-  const projectionLocation = gl.getUniformLocation(program, 'projection');
+      const fovy   = Math.PI / 2;
+      const aspect = c.width / c.height;
+      const near   = 0.1;
+      const far    = 100;
+      const projection$$1 = create$3();
+      perspective(projection$$1, fovy, aspect, near, far);
 
-  gl.uniformMatrix4fv(modelLocation, false, model);
-  gl.uniformMatrix4fv(viewLocation, false, view);
-  gl.uniformMatrix4fv(projectionLocation, false, projection$$1);
+      const modelLocation      = gl.getUniformLocation(program, 'model');
+      const viewLocation       = gl.getUniformLocation(program, 'view');
+      const projectionLocation = gl.getUniformLocation(program, 'projection');
 
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
-  gl.flush();
+      gl.uniformMatrix4fv(modelLocation, false, model);
+      gl.uniformMatrix4fv(viewLocation, false, view);
+      gl.uniformMatrix4fv(projectionLocation, false, projection$$1);
+      gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
 
-  const translation2 = create$3();
-  translate$2(translation2, translation2, [-1.5, 0, 0]);
-  const model2 = create$3();
-  multiply$3(model2, model2, translation2);
-  gl.uniformMatrix4fv(modelLocation, false, model2);
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
-  gl.flush();
+      r++;
+      const scale2 = create$3();
+      scale$3(scale2, scale2, [1, 1, 1]);
+      const rotation2 = create$3();
+      rotateX(rotation2, rotation2, r * Math.PI / 180);
+      rotateY(rotation2, rotation2, r * Math.PI / 180);
+      rotateZ(rotation2, rotation2, r * Math.PI / 180);
+      const translation2 = create$3();
+      translate$2(translation2, translation2, [1.5, 0, 0]);
+      const model2 = create$3();
+      multiply$3(model2, model2, translation2);
+      multiply$3(model2, model2, rotation2);
+      multiply$3(model2, model2, scale2);
+
+      gl.uniformMatrix4fv(modelLocation, false, model2);
+      gl.drawElements(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0);
+      gl.flush();
+
+      window.requestAnimationFrame(anime);
+      console.log(r);
+    }
+  };
+  window.requestAnimationFrame(anime);
 });
